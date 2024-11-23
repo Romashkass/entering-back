@@ -1,6 +1,8 @@
 package com.example.entering_back.controller;
 
-import com.example.entering_back.Algorithm;
+import com.example.entering_back.exception.WrongNumberOfArgumentsException;
+import com.example.entering_back.service.AlgorithmService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,17 +12,21 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin
 public class AlgorithmController {
 
+    private final AlgorithmService algorithmService;
+
+    public AlgorithmController(AlgorithmService algorithmService) {
+        this.algorithmService = algorithmService;
+    }
+
     @GetMapping("/use_algorithm")
     public ResponseEntity<String> useAlgorithm(@RequestParam String str) {
-        try {
-            String result = new Algorithm().middleElement(str);
-            if (null != result) {
-                return new ResponseEntity<>(result, HttpStatus.OK);
-            }
-        } catch (NumberFormatException exception) {
-            return new ResponseEntity<>("Wrong numbers", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        return new ResponseEntity<>("Should be exactly 3 arguments", HttpStatus.INTERNAL_SERVER_ERROR);
+        String result = algorithmService.useAlgorithm(str);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @ExceptionHandler({WrongNumberOfArgumentsException.class, NumberFormatException.class})
+    public ResponseEntity<String> handleExceptions(HttpServletRequest req, Exception ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
 }
